@@ -1,13 +1,23 @@
 class ReactiveEffect {
   private _fn: any;
 
-  constructor(fn) {
+  /** 
+   * 通过 effect 的第二个参数，给定一个 scheduler 函数，
+   * effect第一次执行的时候还是会执行 fn
+   * 当响应式数据触发 set 时，不回执行 fn，而是执行 scheduler
+   * 当执行 effect 的返回值 runner 时， 会执行 fn
+   */
+  private scheduler: any;
+
+  constructor(fn, scheduler?) {
     this._fn = fn;
+    this.scheduler = scheduler
   }
 
   run() {
     activeEffect = this;
-    this._fn();
+     
+    return this._fn();
   }
 }
 
@@ -42,14 +52,20 @@ export function trigger(target, key) {
   const deps = targetMap.get(key);
 
   for (let dep of deps) {
-    dep.run();
+    if(dep.scheduler) {
+      dep.scheduler();
+    } else { 
+      dep.run();
+    }
   }
 }
 
 // activeEffect 存储当前依赖的 ReactiveEffect 的实例
 let activeEffect;
-export function effect(fn) {
-  const _effect = new ReactiveEffect(fn);
+export function effect(fn, options: any = {}) {
+  const _effect = new ReactiveEffect(fn, options.scheduler);
 
   _effect.run();
+
+  return  _effect.run.bind(_effect)
 }
