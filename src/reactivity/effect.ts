@@ -1,7 +1,9 @@
+import { extend } from "../utils";
+
 class ReactiveEffect {
   private _fn: any;
 
-  /** 
+  /**
    * 通过 effect 的第二个参数，给定一个 scheduler 函数，
    * effect第一次执行的时候还是会执行 fn
    * 当响应式数据触发 set 时，不回执行 fn，而是执行 scheduler
@@ -9,16 +11,43 @@ class ReactiveEffect {
    */
   private scheduler: any;
 
+  private onStop: any;
+
+  // 存储当前 stop 的状态
+  active = true;
+
+  // 存储当前 effect 对应的 deps
+  deps = [];
+
   constructor(fn, scheduler?) {
     this._fn = fn;
-    this.scheduler = scheduler
+    this.scheduler = scheduler;
   }
 
   run() {
     activeEffect = this;
-     
+
     return this._fn();
   }
+
+  stop(effect) {
+    if (this.active) {
+      cleanUpEffect(effect);
+      this.active = false;
+    }
+
+    if (this.onStop) {
+      this.onStop();
+    }
+  }
+}
+
+/** 清除当前 effect 的依赖 */
+function cleanUpEffect(effect) {
+  effect.deps.forEach((dep) => {
+    // 删除当前 effect 的依赖
+    dep.delete(effect);
+  });
 }
 
 // 以这个对象为 key， targetsMap 存储所有的响应式对象
@@ -42,8 +71,14 @@ export function track(target, key) {
     targetMap.set(key, deps);
   }
 
+  // 当没有调用 effect 时，activeEffect 为 null
+  if (!activeEffect) return;
+
   // 存储当前依赖的 ReactiveEffect 的实例
   deps.add(activeEffect);
+
+  // 反向存到 reactiveEffect 的 deps 属性中, 用于在 stop 时候清除
+  activeEffect.deps.push(deps);
 }
 
 /** 触发依赖 */
@@ -52,12 +87,17 @@ export function trigger(target, key) {
   const deps = targetMap.get(key);
 
   for (let dep of deps) {
-    if(dep.scheduler) {
+    if (dep.scheduler) {
       dep.scheduler();
-    } else { 
+    } else {
       dep.run();
     }
   }
+}
+
+/** 停止触发依赖 */
+export function stop(runner) {
+  activeEffect.stop(runner._effect);
 }
 
 // activeEffect 存储当前依赖的 ReactiveEffect 的实例
@@ -67,5 +107,12 @@ export function effect(fn, options: any = {}) {
 
   _effect.run();
 
-  return  _effect.run.bind(_effect)
+  // 将 options 挂载到 effect 实例上
+  extend(_effect, options);
+
+  const runner: any = _effect.run.bind(_effect);
+  // 把当前的 effect 挂载到 runner 上，使得每个 runner 都能找到对应的 effect
+  runner._effect = _effect;
+
+  return runner;
 }
