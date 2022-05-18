@@ -1,4 +1,5 @@
 import { track, trigger } from "./effect";
+import { ReactiveFlags } from "./reactivity";
 
 // 优化：只需要初始化的时候调用一次 ceateGetter
 const get = ceateGetter();
@@ -8,6 +9,10 @@ const readonlyGetter = ceateGetter(true);
 function ceateGetter(isReadonly = false) {
   return function get(target, key) {
     const value = Reflect.get(target, key);
+
+    if (key === ReactiveFlags.IS_REACTIVE) {
+      return !isReadonly;
+    }
 
     if (!isReadonly) {
       // 收集依赖
