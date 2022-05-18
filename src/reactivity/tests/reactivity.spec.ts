@@ -8,5 +8,6 @@ describe("reactivity", () => {
     expect(orginal).not.toBe(observed);
     expect(observed.foo).toBe(1);
     expect(isReactive(observed)).toBe(true);
+    expect(isReactive(orginal)).toBe(false);
   });
 });

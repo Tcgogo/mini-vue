@@ -1,4 +1,4 @@
-import { readonly } from "../reactivity";
+import { isReadonly, readonly } from "../reactivity";
 
 describe("readonly", () => {
   it("happy path", () => {
@@ -27,5 +27,6 @@ describe("readonly", () => {
 
     expect(user.age).toBe(10);
     expect(console.warn).toBeCalled();
+    expect(isReadonly(user)).toBe(true);
   });
 });
