@@ -1,5 +1,6 @@
+import { isObject } from "../utils";
 import { track, trigger } from "./effect";
-import { ReactiveFlags } from "./reactivity";
+import { reactive, ReactiveFlags, readonly } from "./reactivity";
 
 // 优化：只需要初始化的时候调用一次 ceateGetter
 const get = ceateGetter();
@@ -8,17 +9,21 @@ const readonlyGetter = ceateGetter(true);
 
 function ceateGetter(isReadonly = false) {
   return function get(target, key) {
-    const value = Reflect.get(target, key);
-
     if (key === ReactiveFlags.IS_REACTIVE) {
       return !isReadonly;
     } else if (key === ReactiveFlags.IS_READONLY) {
       return isReadonly;
     }
 
+    const value = Reflect.get(target, key);
+
     if (!isReadonly) {
       // 收集依赖
       track(target, key);
+    }
+
+    if (isObject(value)) {
+      return isReadonly ? readonly(value) : reactive(value);
     }
 
     return value;

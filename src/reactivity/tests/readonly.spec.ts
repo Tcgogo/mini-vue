@@ -12,6 +12,7 @@ describe("readonly", () => {
     const wrapper = readonly(original);
 
     expect(wrapper).not.toBe(original);
+    expect(isReadonly(wrapper.bar)).toBe(true);
     expect(wrapper.foo).toBe(1);
   });
 

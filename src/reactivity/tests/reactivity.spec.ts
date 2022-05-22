@@ -10,4 +10,18 @@ describe("reactivity", () => {
     expect(isReactive(observed)).toBe(true);
     expect(isReactive(orginal)).toBe(false);
   });
+
+  test("nested reactive", () => {
+    const orginal = {
+      nested: {
+        foo: 1,
+      },
+      array: [{ bar: 2 }],
+    };
+
+    const observed = reactive(orginal);
+
+    expect(isReactive(observed.nested)).toBe(true);
+    expect(isReactive(observed.array[0])).toBe(true);
+  });
 });
