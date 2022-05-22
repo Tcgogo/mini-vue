@@ -1,4 +1,4 @@
-import { isObject } from "../utils";
+import { extend, isObject } from "../utils";
 import { track, trigger } from "./effect";
 import { reactive, ReactiveFlags, readonly } from "./reactivity";
 
@@ -6,8 +6,9 @@ import { reactive, ReactiveFlags, readonly } from "./reactivity";
 const get = ceateGetter();
 const set = ceateSetter();
 const readonlyGetter = ceateGetter(true);
+const shallowReadonlyGetter = ceateGetter(true, true);
 
-function ceateGetter(isReadonly = false) {
+function ceateGetter(isReadonly = false, isShallowReadonly = false) {
   return function get(target, key) {
     if (key === ReactiveFlags.IS_REACTIVE) {
       return !isReadonly;
@@ -22,7 +23,7 @@ function ceateGetter(isReadonly = false) {
       track(target, key);
     }
 
-    if (isObject(value)) {
+    if (isObject(value) && !isShallowReadonly) {
       return isReadonly ? readonly(value) : reactive(value);
     }
 
@@ -54,3 +55,7 @@ export const readonlyHandlers = {
     return true;
   },
 };
+
+export const shallowReadonlyHandlers = extend({}, readonlyGetter, {
+  get: shallowReadonlyGetter,
+});
