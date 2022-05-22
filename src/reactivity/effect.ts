@@ -1,5 +1,9 @@
 import { extend } from "../utils";
 
+// activeEffect 存储当前依赖的 ReactiveEffect 的实例
+let activeEffect;
+// shouldTrack 是否应该收集依赖
+let shouldTrack;
 class ReactiveEffect {
   private _fn: any;
 
@@ -25,9 +29,19 @@ class ReactiveEffect {
   }
 
   run() {
-    activeEffect = this;
+    if (!this.active) {
+      return this._fn();
+    }
 
-    return this._fn();
+    activeEffect = this;
+    shouldTrack = true;
+
+    const result = this._fn();
+
+    // reset
+    shouldTrack = false;
+
+    return result;
   }
 
   stop(effect) {
@@ -48,6 +62,8 @@ function cleanUpEffect(effect) {
     // 删除当前 effect 的依赖
     dep.delete(effect);
   });
+
+  effect.deps.length = 0;
 }
 
 // 以这个对象为 key， targetsMap 存储所有的响应式对象
@@ -55,6 +71,9 @@ let targetsMap = new Map();
 
 /** 收集依赖 */
 export function track(target, key) {
+  // 当没有调用 effect 时，activeEffect 为 null
+  if (!isTracking()) return;
+
   let targetMap = targetsMap.get(target);
 
   if (!targetMap) {
@@ -71,14 +90,18 @@ export function track(target, key) {
     targetMap.set(key, deps);
   }
 
-  // 当没有调用 effect 时，activeEffect 为 null
-  if (!activeEffect) return;
+  // 避免重复收集
+  if (deps.has(activeEffect)) return;
 
   // 存储当前依赖的 ReactiveEffect 的实例
   deps.add(activeEffect);
 
   // 反向存到 reactiveEffect 的 deps 属性中, 用于在 stop 时候清除
   activeEffect.deps.push(deps);
+}
+
+function isTracking() {
+  return activeEffect && shouldTrack;
 }
 
 /** 触发依赖 */
@@ -100,8 +123,6 @@ export function stop(runner) {
   activeEffect.stop(runner._effect);
 }
 
-// activeEffect 存储当前依赖的 ReactiveEffect 的实例
-let activeEffect;
 export function effect(fn, options: any = {}) {
   const _effect = new ReactiveEffect(fn, options.scheduler);
 

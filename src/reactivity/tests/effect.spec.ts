@@ -65,7 +65,8 @@ describe("effect", () => {
     });
 
     stop(runner);
-    obj.foo = 2;
+    // obj.foo = 2;
+    obj.foo++;
     expect(dummy).toBe(2);
   });
 
