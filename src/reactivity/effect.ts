@@ -90,7 +90,12 @@ export function track(target, key) {
     targetMap.set(key, deps);
   }
 
+  trackEffect(deps);
+}
+
+export function trackEffect(deps) {
   // 避免重复收集
+  if (!activeEffect) return;
   if (deps.has(activeEffect)) return;
 
   // 存储当前依赖的 ReactiveEffect 的实例
@@ -109,6 +114,10 @@ export function trigger(target, key) {
   const targetMap = targetsMap.get(target);
   const deps = targetMap.get(key);
 
+  triggerEffect(deps);
+}
+
+export function triggerEffect(deps) {
   for (let dep of deps) {
     if (dep.scheduler) {
       dep.scheduler();
