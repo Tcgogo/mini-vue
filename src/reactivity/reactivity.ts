@@ -30,7 +30,7 @@ export function isReadonly(row) {
 }
 
 export function isProxy(row) {
-  return isReactive(row) || isReactive(row);
+  return isReactive(row) || isReadonly(row);
 }
 
 function ceateActiveObject(row, baseHandlers) {
