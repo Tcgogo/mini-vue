@@ -1,4 +1,5 @@
-import { trackEffect, triggerEffect } from "./effect";
+import { hasChange } from "../utils";
+import { isTracking, trackEffect, triggerEffect } from "./effect";
 
 class Refmpl {
   private _value: any;
@@ -9,13 +10,17 @@ class Refmpl {
   }
 
   get value() {
-    trackEffect(this.deps);
-    return this._value;
+    if (isTracking()) {
+      trackEffect(this.deps);
+      return this._value;
+    }
   }
 
   set value(newValue) {
-    triggerEffect(this.deps);
-    this._value = newValue;
+    if (hasChange(newValue, this._value)) {
+      triggerEffect(this.deps);
+      this._value = newValue;
+    }
   }
 }
 

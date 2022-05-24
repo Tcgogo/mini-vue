@@ -105,7 +105,7 @@ export function trackEffect(deps) {
   activeEffect.deps.push(deps);
 }
 
-function isTracking() {
+export function isTracking() {
   return activeEffect && shouldTrack;
 }
 
