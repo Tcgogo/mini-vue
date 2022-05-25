@@ -28,4 +28,18 @@ describe("ref", () => {
     expect(calls).toBe(2);
     expect(dummy).toBe(2);
   });
+
+  it("should make nested properties reactive", () => {
+    const a = ref({
+      b: 1,
+    });
+
+    let dummy;
+    effect(() => {
+      dummy = a.value.b + 1;
+    });
+
+    a.value.b = 2;
+    expect(dummy).toBe(3);
+  });
 });

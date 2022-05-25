@@ -106,7 +106,7 @@ export function trackEffect(deps) {
 }
 
 export function isTracking() {
-  return activeEffect && shouldTrack;
+  return activeEffect !== undefined && shouldTrack;
 }
 
 /** 触发依赖 */

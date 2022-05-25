@@ -1,25 +1,28 @@
-import { hasChange } from "../utils";
+import { hasChange, isObject } from "../utils";
 import { isTracking, trackEffect, triggerEffect } from "./effect";
+import { reactive } from "./reactivity";
 
 class Refmpl {
   private _value: any;
   private deps: Set<unknown>;
+  private _rawValue: any;
   constructor(value) {
     this.deps = new Set();
-    this._value = value;
+    this._rawValue = value;
+    this._value = isObject(value) ? reactive(value) : value;
   }
 
   get value() {
-    if (isTracking()) {
-      trackEffect(this.deps);
-      return this._value;
-    }
+    trackEffect(this.deps);
+    return this._value;
   }
 
   set value(newValue) {
-    if (hasChange(newValue, this._value)) {
+    // 判断值是否有改变，改变才触发依赖。
+    if (hasChange(newValue, this._rawValue)) {
       triggerEffect(this.deps);
-      this._value = newValue;
+      this._rawValue = newValue;
+      this._value = isObject(newValue) ? reactive(newValue) : newValue;
     }
   }
 }
