@@ -6,6 +6,7 @@ class Refmpl {
   private _value: any;
   private deps: Set<unknown>;
   private _rawValue: any;
+  private __is_ref = true;
   constructor(value) {
     this.deps = new Set();
     this._rawValue = value;
@@ -25,6 +26,14 @@ class Refmpl {
       this._value = isObject(newValue) ? reactive(newValue) : newValue;
     }
   }
+}
+
+export function isRef(raw) {
+  return !!raw.__is_ref;
+}
+
+export function unRef(raw) {
+  return isRef(raw) ? raw.value : raw;
 }
 
 export function ref(value) {
