@@ -39,3 +39,20 @@ export function unRef(raw) {
 export function ref(value) {
   return new Refmpl(value);
 }
+
+export function proxyRefs(objectWithRefs) {
+  return new Proxy(objectWithRefs, {
+    get(target, key) {
+      return unRef(Reflect.get(target, key));
+    },
+
+    set: (target, key, value) => {
+      // 当他旧值是 ref ，且新值不是一个 ref
+      if (isRef(Reflect.get(target, key)) && !isRef(value)) {
+        return (target[key].value = value);
+      } else {
+        return Reflect.set(target, key, value);
+      }
+    },
+  });
+}
