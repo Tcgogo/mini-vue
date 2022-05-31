@@ -4,7 +4,7 @@ import { extend } from "../utils";
 let activeEffect;
 // shouldTrack 是否应该收集依赖
 let shouldTrack;
-class ReactiveEffect {
+export class ReactiveEffect {
   private _fn: any;
 
   /**
