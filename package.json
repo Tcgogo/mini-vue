@@ -5,16 +5,20 @@
   "repository": "https://github.com/Tcgogo/mini-vue.git",
   "author": "Tcgogo <1812497229@qq.com>",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "rollup -c rollup.config.js"
   },
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.17.10",
     "@babel/preset-env": "^7.17.10",
     "@babel/preset-typescript": "^7.16.7",
+    "@rollup/plugin-typescript": "^8.3.3",
     "@types/jest": "^27.5.1",
     "babel-jest": "^28.1.0",
     "jest": "^28.1.0",
+    "rollup": "^2.77.0",
+    "tslib": "^2.4.0",
     "typescript": "^4.6.4"
   }
 }
