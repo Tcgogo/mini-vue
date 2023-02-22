@@ -1,5 +1,6 @@
 import { isObject } from "../utils";
 import { createComponentInstance, setupComponent } from "./component";
+import { PublicInstanceProxyHandlers } from "./componentsPulicInstance";
 
 export function render(vnode, container) {
   patch(vnode, container);
@@ -21,8 +22,7 @@ function patch(vnode, container) {
 
 function proccessElement(vnode, container) {
   const { type, props } = vnode
-  const el = document.createElement(type)
-  console.log('%c [ el ]-24', 'font-size:13px; background:pink; color:#bf2c9f;', el)
+  const el = (vnode.el = document.createElement(type))
 
   // props
   for (let p in props) {
@@ -51,21 +51,33 @@ function proccessComponent(vnode: any, container) {
   mountComponent(vnode, container);
 }
 
-function mountComponent(vnode, container) {
+function mountComponent(initialVNode, container) {
   // 创建组件实例
-  const instance = createComponentInstance(vnode);
+  const instance = createComponentInstance(initialVNode);
+
+  // 代理 instance
+  instance.proxy = new Proxy({
+    _: instance
+  }, PublicInstanceProxyHandlers)
 
   // 初始化组件，props、slots 等
   setupComponent(instance);
 
   // 初始化render
-  setupRenderEffect(instance, container);
+  setupRenderEffect(instance, container, initialVNode);
 }
-function setupRenderEffect(instance: any, container) {
-  const subTree = instance.render();
+function setupRenderEffect(instance: any, container, initialVNode) {
+
+
+  const { proxy } = instance
+
+  // 把代理绑定到 render this 上, 通过 this 可以访问 setupStatus 上的属性
+  const subTree = instance.render.call(proxy);
 
   // vode => patch
   // vnode => element => mountElement
 
   patch(subTree, container);
+
+  initialVNode.el = subTree.el
 }
