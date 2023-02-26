@@ -1,3 +1,4 @@
+import { ShapeFlags } from "../shared/shapeFlags";
 import { isObject } from "../utils";
 import { createComponentInstance, setupComponent } from "./component";
 import { PublicInstanceProxyHandlers } from "./componentsPulicInstance";
@@ -10,10 +11,10 @@ function patch(vnode, container) {
   console.log('%c [ vnode ]-8', 'font-size:13px; background:pink; color:#bf2c9f;', vnode)
   // 如何区分 element 类型和 components类型
 
-  if (typeof vnode.type === 'string') {
+  if (vnode.shapeFlags & ShapeFlags.ELEMENT) {
     // 处理 element
     proccessElement(vnode, container)
-  } else if (isObject(vnode)) {
+  } else if (vnode.shapeFlags & ShapeFlags.STATEFUL_COMPONENT) {
     // 处理组件
     proccessComponent(vnode, container);
   }
@@ -38,9 +39,9 @@ function proccessElement(vnode, container) {
 // 处理 children
 function mountChildren(vnode, container) {
   const { children } = vnode
-  if (typeof children === 'string') {
+  if (vnode.shapeFlags & ShapeFlags.TEXT_CHILDREN) {
     container.textContent = children
-  } else if (Array.isArray(children)) {
+  } else if (vnode.shapeFlags & ShapeFlags.ARRAY_CHILDREN) {
     // vnode
     children.forEach((item) => patch(item, container))
   }
